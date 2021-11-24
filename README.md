@@ -11,6 +11,8 @@ The personal gain from this project are mainly:
 * working with REST-APIs
 * JSON format
 * OAuth 2.0 Authorization Flow
+### Used libraries
+* 
 ### Credit
 The idea of this project is inspired by the 
 following repository: 
