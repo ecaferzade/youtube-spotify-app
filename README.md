@@ -6,12 +6,11 @@ playlist out of these songs. The idea is
 to keep Spotify account up-to-date in sense
 of music and collect the whole musical 
 experience in Spotify.
-### Goal
-The personal gain from this project is 
-getting familiar with REST API's 
-(YouTube and Spotify API's) 
-and JSON format.  
-
+### Covered Topics
+The personal gain from this project are mainly:
+* working with REST-APIs
+* JSON format
+* OAuth 2.0 Authorization Flow
 ### Credit
 The idea of this project is inspired by the 
 following repository: 
