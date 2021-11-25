@@ -1,8 +1,20 @@
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import os
+import pprint
 
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
+
+
+# Function for cleaning the liked song names from Youtube
+def str_cleaner(str):
+    start = str.find( '(' )
+    end = str.find( ')' )
+    if (not start == -1) and (not end == -1):
+        str = str[0 : start :] + str[end+1 : -1]
+    str = str.replace("-","")
+    #str = str.replace(" ", "%20")
+    return str
 
 
 def get_youtube_client():
@@ -23,10 +35,13 @@ def get_youtube_client():
         request = youtube.videos().list(
             part="snippet",
             myRating="like",
-            maxResults=1
+            maxResults=100
         )
         response = request.execute()
-        print(type(response))
+        list_of_liked_songs = []
+        for item in response["items"]:
+            list_of_liked_songs.append(str_cleaner(item["snippet"]["title"]))
+        pprint.pprint(list_of_liked_songs)
     except OSError as err:
         print("\nPlease wait 60 seconds before running the script again. "
               "This is necessary due to the maximum packet age.")
