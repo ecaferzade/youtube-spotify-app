@@ -5,11 +5,7 @@ import pprint
 import requests
 from spotify_client_secret import client_id, client_secret
 import webbrowser
-import http.server
-import socketserver
-import sys
 import socket
-
 
 
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
@@ -59,29 +55,49 @@ def get_youtube_client():
     return response
 
 
-def get_spotify_auth(cl_id):
+def get_spotify_auth(cl_id):  # Chosen method: Authorization Code
+    # Request User Authorization
+    # Prepare the first GET request to take users permission
     host = "localhost"
     port = 9000
     auth_endpoint = "https://accounts.spotify.com/authorize"
     red_uri = "http://localhost:{}/".format(port)
     scp = "playlist-modify-public playlist-modify-private"
-    payload = {'client_id': cl_id,
-               'response_type': 'code',
-               'redirect_uri': red_uri,
-               "show_dialog": "false",
-               'scope': scp
-               }
-
+    payload_get = {'client_id': cl_id,
+                   'response_type': 'code',
+                   'redirect_uri': red_uri,
+                   'show_dialog': 'false',
+                   'scope': scp
+                   }
+    # After permission, a code will be sent.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # socket reusable directly.
         s.bind((host, port))
         s.listen()
-        r = requests.get(auth_endpoint, params=payload)  # make the GET request
+        r = requests.get(auth_endpoint, params=payload_get)  # make the GET request
         webbrowser.open(r.url)  # clicking on the url gives the callback
         conn, addr = s.accept()
-        data = conn.recv(1024)
-    code = str(data)[str(data).find('code=')+5:-1]  # extract the code from the url
+        data = str(conn.recv(1024))
+    # extract the code from the url
+    start = data.find('code=')+5
+    stop = data.find('HTTP/1.1')-1
+    code = data[start: stop]
 
+    # Request Access Token
+    # Exchange auth code for an access token
+    token_endpoint = "https://accounts.spotify.com/api/token"  # make a POST request to here.
+    payload_post = {"grant_type": "authorization_code",
+                    "code": "{}".format(code),
+                    "redirect_uri": "{}".format(red_uri),
+                    "client_id": "{}".format(cl_id),
+                    "client_secret": "{}".format(client_secret)
+                    }
+    headers_post = {"Content-Type": "application/x-www-form-urlencoded"}
+    token_r = requests.post(token_endpoint,
+                            data=payload_post,
+                            headers=headers_post
+                            )
+    access_token = token_r.json()['access_token']
 
 
 if __name__ == "__main__":
