@@ -43,7 +43,7 @@ def get_liked_vids_youtube(n):
         list_of_liked_videos = []
         for item in response["items"]:
             list_of_liked_videos.append(item["snippet"]["title"])
-    except OSError as err:
+    except OSError:
         print("\nPlease wait 60 seconds before running the script again. "
               "This is necessary due to the maximum packet age.")
         return 0
@@ -52,9 +52,9 @@ def get_liked_vids_youtube(n):
 
 def get_spotify_auth(cl_id):  # Chosen method: Authorization Code
     """
-
-    :param cl_id:
-    :return:
+    Complete the authorization process following authorization code method.
+    :param cl_id: This string is the apps client id, stored in a secrets file. (str)
+    :return: Access token, necessary for future operations like creating a playlist. (str)
     """
     # Request User Authorization
     # Prepare the first GET request to take users permission
@@ -97,12 +97,18 @@ def get_spotify_auth(cl_id):  # Chosen method: Authorization Code
                             headers=headers_post
                             )
     acs_token = token_r.json()['access_token']
-    refresh_token = token_r.json()['refresh_token']
     print("Status code for token: ", token_r.status_code)
     return acs_token
 
 
 def create_spotify_playlist(playlist_name, acs_token, usr_id):
+    """
+    Create a new playlist on Spotify.
+    :param playlist_name: Name of the new playlist (str)
+    :param acs_token: Access token for the permission (str)
+    :param usr_id: Id of the user (str)
+    :return: Id of the newly created playlist
+    """
     create_playlist_endpoint = "https://api.spotify.com/v1/users/{}/playlists".format(usr_id)
     payload_post = json.dumps({"name": "{}".format(playlist_name),
                                "description": "This playlist is generated automatically by my youtube-spotify-app"
@@ -120,6 +126,13 @@ def create_spotify_playlist(playlist_name, acs_token, usr_id):
 
 
 def search_on_spotify(liked_videos, acs_token):
+    """
+    Search liked videos on Spotify. Print which liked songs could be found on Spotify as
+    songs and which ones couldn't be found.
+    :param liked_videos: Liked videos on YouTube (list of strings)
+    :param acs_token: Access token for the permission (str)
+    :return: list of found songs uri's.
+    """
     # An undeniable part of the liked videos
     # are not going to be found since they are basically not songs.
     # Unfound videos should be returned.
@@ -147,14 +160,22 @@ def search_on_spotify(liked_videos, acs_token):
 
 
 def add_songs_to_playlist(acs_token, uris, plylist_id):
+    """
+    Add found songs in the created playlist.
+    :param acs_token: Access token for the permission (str)
+    :param uris: List of uri's of the found songs.
+    :param plylist_id: Id of the created playlist to add the songs.
+    :return: 0
+    """
     add_songs_endpoint = "https://api.spotify.com/v1/playlists/{}/tracks".format(plylist_id)
     headers_post = {"Content-Type": "application/json",
-                            "Authorization": "Bearer {}".format(acs_token)}
+                    "Authorization": "Bearer {}".format(acs_token)}
     payload_post = json.dumps({"uris": uris})
     add_songs_r = requests.post(add_songs_endpoint,
                                 data=payload_post,
                                 headers=headers_post)
     print("Status code for adding the songs: ", add_songs_r.status_code)
+    return 0
 
 
 if __name__ == "__main__":
