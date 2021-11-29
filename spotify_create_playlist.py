@@ -19,7 +19,7 @@ def get_liked_vids_youtube(n):
     :param n: Number of liked songs to collect
     :return: list of last n liked videos
     """
-    # modified from YouTube Data API
+    # taken and modified from YouTube Data API
     # Disable OAuthlib's HTTPS verification when running locally.
     # *DO NOT* leave this option enabled in production.
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
