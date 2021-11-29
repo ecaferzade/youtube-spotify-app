@@ -2,6 +2,15 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import os
 import pprint
+import requests
+from spotify_client_secret import client_id, client_secret
+import webbrowser
+import http.server
+import socketserver
+import sys
+import socket
+
+
 
 scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 
@@ -29,7 +38,8 @@ def get_youtube_client():
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
         client_secrets_file, scopes)
     try:
-        credentials = flow.run_local_server(authorization_prompt_message="", redirect_uri_trailing_slash=False)
+        credentials = flow.run_local_server(authorization_prompt_message="",
+                                            redirect_uri_trailing_slash=False)
         youtube = googleapiclient.discovery.build(
             api_service_name, api_version, credentials=credentials)
         request = youtube.videos().list(
@@ -48,5 +58,34 @@ def get_youtube_client():
         return 0
     return response
 
+
+def get_spotify_auth(cl_id):
+    host = "localhost"
+    port = 9000
+    auth_endpoint = "https://accounts.spotify.com/authorize"
+    red_uri = "http://localhost:{}/".format(port)
+    scp = "playlist-modify-public playlist-modify-private"
+    payload = {'client_id': cl_id,
+               'response_type': 'code',
+               'redirect_uri': red_uri,
+               "show_dialog": "false",
+               'scope': scp
+               }
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # socket reusable directly.
+        s.bind((host, port))
+        s.listen()
+        r = requests.get(auth_endpoint, params=payload)  # make the GET request
+        webbrowser.open(r.url)  # clicking on the url gives the callback
+        conn, addr = s.accept()
+        data = conn.recv(1024)
+    code = str(data)[str(data).find('code=')+5:-1]  # extract the code from the url
+
+
+
 if __name__ == "__main__":
-    get_youtube_client()
+    #get_youtube_client()
+    get_spotify_auth(client_id)
+
+
