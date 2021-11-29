@@ -10,6 +10,7 @@ experience in Spotify.
 The technical gains from this project are mainly:
 * working with REST-APIs
 * OAuth 2.0 Authorization Flow
+* working with sockets 
 * JSON format
 ### Used libraries
 * google_auth_oauthlib
